@@ -5,6 +5,7 @@ def drop_unnamed_columns(df):
         column for column in df.columns
         if "unnamed" in column.lower()
     ]
+    print(columns_to_drop)
     return df.drop(columns=columns_to_drop)
 
 def standardize_columns_names(df):

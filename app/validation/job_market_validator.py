@@ -2,10 +2,10 @@
 
 experience_levels = {'EN', 'MI', 'SE', 'EX'}
 
-def validate_jon_market(df):
+def validate_job_market(df):
     validation_results = {
         "invalid_salary_rows": (df['salary'] <= 0).sum(),
-        "invalid_experience_level_rows": (~df['experience_levels'].isin(experience_levels)).sum()
+        "invalid_experience_level_rows": (~df['experience_level'].isin(experience_levels)).sum()
     }
 
     return validation_results

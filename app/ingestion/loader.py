@@ -3,8 +3,8 @@
 
 import pandas as pd
 
-def load_data():
-    df = pd.read_csv('../../data/raw/ds_salaries.csv')
+def load_data(path):
+    df = pd.read_csv(path)
 
     print("First 3 rows:")
     print(df.head(3).to_string())
