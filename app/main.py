@@ -3,6 +3,7 @@
 from app.ingestion import loader
 from app.processing import cleaner
 from app.validation import generic_validator, job_market_validator
+from app.analysis import salary_analysis
 
 def run_pipeline():
     df = loader.load_data('../data/raw/ds_salaries.csv')
@@ -18,5 +19,6 @@ if __name__ == '__main__':
 
     print(generic_results)
     print(job_results)
+    print(salary_analysis.salary_analysis(df))
 
 
