@@ -15,7 +15,6 @@ def load_data():
     print("\nColumns:")
     print(df.columns)
 
-    print(df.dtypes)
 
     return df
 
