@@ -2,6 +2,7 @@
 # Will be used better when moving from csv file to online sources
 
 import pandas as pd
+from app.utils import paths
 
 def load_data(path):
     df = pd.read_csv(path)
