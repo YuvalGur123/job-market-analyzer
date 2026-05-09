@@ -29,3 +29,30 @@ def salary_analysis(df):
     )
 
     return results
+
+def salary_outliers_analysis(df):
+    q1 = df['salary_in_usd'].quantile(0.25)
+    q3 = df['salary_in_usd'].quantile(0.75)
+    iqr = q3 - q1
+    lower_bound = q1 - 1.5 * iqr
+    upper_bound = q3 + 1.5 * iqr
+    lower_outliers = df[df['salary_in_usd'] < lower_bound]
+    upper_outliers = df[df['salary_in_usd'] > upper_bound]
+    results = {
+        'iqr': iqr,
+        'lower_bound': lower_bound,
+        'upper_bound': upper_bound,
+
+
+        'lower_outliers_count':  len(lower_outliers),
+        'upper_outliers_count':  len(upper_outliers),
+
+
+        'lower_outliers': lower_outliers[
+            ['job_title', 'salary_in_usd']
+        ].to_dict(orient='records'),
+        'upper_outliers': upper_outliers[
+            ['job_title', 'salary_in_usd']
+        ].to_dict(orient='records')
+    }
+    return results

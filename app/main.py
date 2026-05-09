@@ -20,5 +20,6 @@ if __name__ == '__main__':
     print(generic_results)
     print(job_results)
     print(salary_analysis.salary_analysis(df))
+    print(salary_analysis.salary_outliers_analysis(df))
 
 
