@@ -5,8 +5,18 @@ import streamlit as st
 from app.analysis import salary_analysis
 from app.pipeline import run_pipeline
 import pandas as pd
+import matplotlib.pyplot as plt
+
+
 
 df, validation_results = run_pipeline()
+
+experience_levels_mapping = {
+    'EN' : 'Entry Level',
+    'MI' : 'Mid Level',
+    'SE' : 'Senior',
+    'EX' : 'Executive'
+}
 
 st.title('Job Market Analyzer')
 st.markdown("Analyzing salary trends, roles, and outliers in the data science job market.")
@@ -17,10 +27,19 @@ experience_levels = sorted(df["experience_level"].unique())
 work_years = sorted(df["work_year"].unique())
 remote_ratios = sorted(df["remote_ratio"].unique())
 
+display_experience_levels = [
+    experience_levels_mapping[level]
+    for level in experience_levels_mapping
+]
+
+reverse_experience_labels = {
+    value: key
+    for key, value in experience_levels_mapping.items()
+}
 
 selected_experience = st.sidebar.selectbox(
     "Experience Level",
-    options=["All"] + experience_levels
+    options=["All"] + display_experience_levels
 )
 
 selected_year = st.sidebar.selectbox(
@@ -36,6 +55,7 @@ selected_remote = st.sidebar.selectbox(
 filtered_df = df.copy()
 
 if selected_experience != "All":
+    selected_experience = reverse_experience_labels[selected_experience]
     filtered_df = filtered_df[
         filtered_df["experience_level"] == selected_experience
     ]
@@ -52,20 +72,68 @@ if selected_remote != "All":
 
 analysis_results = {
         'salary_analysis' : salary_analysis.salary_analysis(filtered_df),
-        'outlier_analysis' : salary_analysis.salary_outliers_analysis(filtered_df)
+        'outlier_analysis' : salary_analysis.salary_outliers_analysis(filtered_df),
     }
 
-st.subheader("Average Salary by Experience Level")
-experience_df = pd.DataFrame(
-    analysis_results["salary_analysis"]['salary_by_experience'].items(),
-    columns=["Experience Level", "Average Salary"]
-)
+st.subheader('Key Metrics')
+col1, col2, col3, col4 = st.columns(4)
 
-st.bar_chart(
-    experience_df,
-    x="Experience Level",
-    y="Average Salary"
-)
+with col1:
+    st.metric(
+        "Average Salary",
+        f"${analysis_results['salary_analysis']['overall_stats']['mean_salary']:,.0f}"
+    )
+with col2:
+    st.metric(
+        "Median Salary",
+        f"${analysis_results['salary_analysis']['overall_stats']['median_salary']:,.0f}"
+    )
+with col3:
+    st.metric(
+        "Jobs Count",
+        len(filtered_df)
+    )
+with col4:
+    st.metric(
+        "Upper Outliers",
+        analysis_results['outlier_analysis']["upper_outliers_count"]
+    )
+
+chart_col1, chart_col2 = st.columns(2)
+
+with chart_col1:
+    st.subheader("Average Salary by Experience Level")
+    experience_df = pd.DataFrame(
+        analysis_results["salary_analysis"]['salary_by_experience'].items(),
+        columns=["Experience Level", "Average Salary"]
+    )
+    experience_df["Experience Level"] = (
+        experience_df["Experience Level"]
+        .map(experience_levels_mapping)
+    )
+
+    st.bar_chart(
+        experience_df,
+        x="Experience Level",
+        y="Average Salary"
+    )
+
+with chart_col2:
+    st.subheader("Salary by Remote Ratio")
+
+    salary_by_remote = (
+        analysis_results["salary_analysis"]["salary_by_remote_ratio"]
+    )
+    remote_df = pd.DataFrame(
+        salary_by_remote.items(),
+        columns=["Remote Ratio", "Average Salary"]
+    )
+
+    st.bar_chart(
+        remote_df,
+        x="Remote Ratio",
+        y="Average Salary"
+    )
 
 
 top_jobs = (
@@ -84,19 +152,43 @@ st.bar_chart(
     y="Average Salary"
 )
 
-st.subheader("Salary by Remote Ratio")
+st.subheader('Salary Outlier Insights')
 
-salary_by_remote = (
-    analysis_results["salary_analysis"]["salary_by_remote_ratio"]
-)
-remote_df = pd.DataFrame(
-    salary_by_remote.items(),
-    columns=["Remote Ratio", "Average Salary"]
-)
-st.subheader("Average Salary by Remote Ratio")
+outlier_col1, outlier_col2 = st.columns(2)
 
-st.bar_chart(
-    remote_df,
-    x="Remote Ratio",
-    y="Average Salary"
+with outlier_col1:
+    st.metric(
+        "Upper Outliers' bound:",
+        f"${analysis_results['outlier_analysis']['upper_bound']:,.0f}"
+    )
+with outlier_col2:
+    st.metric(
+        "lower Outliers' bound:",
+        f"${analysis_results['outlier_analysis']['lower_bound']:,.0f}"
+    )
+
+outliers_df = pd.DataFrame(
+    analysis_results['outlier_analysis']['upper_outliers']
 )
+outliers_df = outliers_df.sort_values(
+    by="salary_in_usd",
+    ascending=False
+)
+outliers_df = outliers_df.head(5)
+
+st.dataframe(outliers_df.style.format({
+    'salary_in_usd': '{:,.0f}'
+})
+)
+
+st.subheader("Salary Distribution")
+fig, ax = plt.subplots()
+ax.hist(
+    filtered_df["salary_in_usd"],
+    bins = 10,
+    rwidth=0.8
+)
+ax.set_xlabel("Salary in USD")
+ax.set_ylabel("Frequency")
+ax.set_title("Salary Distribution")
+st.pyplot(fig)
