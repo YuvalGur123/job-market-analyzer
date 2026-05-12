@@ -52,6 +52,9 @@ selected_remote = st.sidebar.selectbox(
     options=["All"] + list(remote_ratios)
 )
 
+
+
+
 filtered_df = df.copy()
 
 if selected_experience != "All":
@@ -69,6 +72,15 @@ if selected_remote != "All":
     filtered_df = filtered_df[
         filtered_df["remote_ratio"] == selected_remote
     ]
+
+csv_data = filtered_df.to_csv(index=False)
+st.sidebar.subheader("Export Data")
+st.sidebar.download_button(
+    label="Download",
+    data=csv_data,
+    file_name="Filtered_job_market_data.csv",
+    mime="text/csv")
+
 
 analysis_results = {
         'salary_analysis' : salary_analysis.salary_analysis(filtered_df),
