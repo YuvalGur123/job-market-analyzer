@@ -1,4 +1,4 @@
-# Visualisation layer, will use streamlit to display the data in a clean way
+# Visualisation layer, will use Streamlit to display the data in a clean way
 
 import streamlit as st
 
@@ -21,11 +21,15 @@ experience_levels_mapping = {
 st.title('Job Market Analyzer')
 st.markdown("Analyzing salary trends, roles, and outliers in the data science job market.")
 
+# Adding filtering ability
+
 st.sidebar.header("Filters")
 
 experience_levels = sorted(df["experience_level"].unique())
 work_years = sorted(df["work_year"].unique())
 remote_ratios = sorted(df["remote_ratio"].unique())
+
+# Making internal coding more readable to users
 
 display_experience_levels = [
     experience_levels_mapping[level]
@@ -52,9 +56,6 @@ selected_remote = st.sidebar.selectbox(
     options=["All"] + list(remote_ratios)
 )
 
-
-
-
 filtered_df = df.copy()
 
 if selected_experience != "All":
@@ -72,6 +73,8 @@ if selected_remote != "All":
     filtered_df = filtered_df[
         filtered_df["remote_ratio"] == selected_remote
     ]
+
+# Ability to Export the filtered CSV
 
 csv_data = filtered_df.to_csv(index=False)
 st.sidebar.subheader("Export Data")
